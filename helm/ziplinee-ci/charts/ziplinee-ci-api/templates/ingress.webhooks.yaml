@@ -1,0 +1,40 @@
+{{- if $.Values.ingressWebhooks.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "ziplinee-ci-api.fullname" . }}.webhooks
+  labels:
+    {{- include "ziplinee-ci-api.labels" . | nindent 4 }}
+  {{- with $.Values.ingressWebhooks.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if $.Values.ingressWebhooks.ingressClassName }}
+  ingressClassName: "{{ $.Values.ingressWebhooks.ingressClassName }}"
+  {{- end}}
+  {{- if $.Values.ingressWebhooks.tls }}
+  tls:
+    {{- range $.Values.ingressWebhooks.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ tpl . $ | quote }}
+        {{- end }}
+      secretName: {{ tpl .secretName $ | quote }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range $.Values.ingressWebhooks.hosts }}
+    - host: {{ tpl .host $ | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            {{- with .pathType }}
+            pathType: {{ . }}
+            {{- end }}
+            backend:
+              {{- toYaml .backend | nindent 14 }}
+          {{- end }}
+    {{- end }}
+  {{- end }}

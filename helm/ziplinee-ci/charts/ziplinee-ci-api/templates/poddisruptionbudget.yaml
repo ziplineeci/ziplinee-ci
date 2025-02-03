@@ -1,0 +1,13 @@
+{{- if $.Values.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "ziplinee-ci-api.fullname" . }}
+  labels:
+    {{- include "ziplinee-ci-api.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "ziplinee-ci-api.selectorLabels" . | nindent 6 }}
+  maxUnavailable: {{ $.Values.pdb.maxUnavailable }}
+{{- end }}

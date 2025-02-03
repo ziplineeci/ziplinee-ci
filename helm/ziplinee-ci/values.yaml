@@ -1,0 +1,139 @@
+api:
+  enabled: true
+
+web:
+  enabled: true
+
+db-migrator:
+  enabled: true
+
+
+db:
+  enabled: true
+  statefulset:
+    env:
+    - name: COCKROACH_SKIP_ENABLING_DIAGNOSTIC_REPORTING
+      value: "true"
+  service:
+    public:
+      annotations:
+        # required when tls is enabled for cluster and gce ingress is used
+        service.alpha.kubernetes.io/app-protocols: '{"http":"HTTPS"}'
+  ingress:
+    annotations:
+      # required when tls is enabled for cluster and nginx ingress is used
+      nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+  tls:
+    certs:
+      selfSigner:
+        # Wait time for each cockroachdb replica to become ready once it comes in running state. Only considered when rotateCerts is set to true
+        readinessWait: 1m
+        # Wait time for each cockroachdb replica to get to running state. Only considered when rotateCerts is set to true
+        podUpdateTimeout: 5m
+    # override tag until a new chart picks up the latest correct values
+    selfSigner:
+      image:
+        tag: "1.3"
+
+# https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus/values.yaml
+metrics:
+  enabled: true
+  server:
+    enabled: true
+
+    global:
+      scrape_interval: 5s
+      scrape_timeout: 5s
+      evaluation_interval: 5s
+
+    persistentVolume:
+      enabled: false
+
+    emptyDir:
+      sizeLimit: "1Gi"
+
+    replicaCount: 1
+
+    retention: "6h"
+
+  serverFiles:
+    prometheus.yml:
+      scrape_configs:
+        - job_name: 'kubernetes-nodes-resource'
+          scheme: https
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+            insecure_skip_verify: true
+          bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+          kubernetes_sd_configs:
+            - role: node
+          relabel_configs:
+            - action: labelmap
+              regex: __meta_kubernetes_node_label_(.+)
+            - target_label: __address__
+              replacement: kubernetes.default.svc:443
+            - source_labels: [__meta_kubernetes_node_name]
+              regex: (.+)
+              target_label: __metrics_path__
+              replacement: /api/v1/nodes/$1/proxy/metrics/resource
+              # for kubernetes < 1.18 use
+              # replacement: /api/v1/nodes/$1/proxy/metrics/cadvisor
+          metric_relabel_configs:
+            # keep only the metrics required to calculate max cpu/memory usage by a build/release job
+            - source_labels: [__name__]
+              action: keep
+              regex: container_cpu_usage_seconds_total|container_memory_working_set_bytes
+            # keep only for namespace running build/release jobs
+            - source_labels: [namespace]
+              action: keep
+              regex: .+-jobs
+    recording_rules.yml:
+      groups:
+      - name: ziplinee-ci-max-cpu-calculation
+        rules:
+        - record: container_cpu_usage_rate1m
+          expr: avg( irate(container_cpu_usage_seconds_total{container!="POD", container!=""}[6h]) ) by (container,pod,namespace)
+
+  # disable all other components
+  serviceAccounts:
+    alertmanager:
+      create: false
+    nodeExporter:
+      create: false
+    pushgateway:
+      create: false
+    server:
+      create: true
+
+  alertmanager:
+    enabled: false
+
+  configmapReload:
+    prometheus:
+      enabled: true
+    alertmanager:
+      enabled: false
+
+  kubeStateMetrics:
+    enabled: false
+
+  nodeExporter:
+    enabled: false
+
+
+  pushgateway:
+    enabled: false
+
+queue:
+  enabled: true
+  natsbox:
+    enabled: false
+
+db-client:
+  enabled: false
+
+cert-manager:
+  enabled: false
+
+external-dns:
+  enabled: false

@@ -1,0 +1,24 @@
+api:
+  image:
+    tag: 1.5.5-out-of-cluster
+  config:
+    files:
+      config.yaml: |
+        apiServer:
+          baseURL: http://ziplinee.mydomain.com
+          integrationsHost: http://ziplinee-integrations.mydomain.com
+          integrationsURL: http://ziplinee-integrations.mydomain.com
+        auth:
+          jwt:
+            domain: http://ziplinee.mydomain.com
+            key: 123
+          administrators:
+            - 1353025854@qq.com
+          github:
+            clientID: Ov23li9roRFSHrX9UdL9
+            clientSecret: df167b1ee72f09604bfc7b21493f9a0c9d800fb4
+            allowedIdentitiesRegex: ''
+        integrations:
+          github:
+            enable: true
+      credentials.yaml:

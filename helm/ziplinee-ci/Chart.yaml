@@ -1,0 +1,63 @@
+apiVersion: v2
+name: estafette-ci
+description: The resilient and cloud-native CI/CD platform
+
+# A chart can be either an 'application' or a 'library' chart.
+#
+# Application charts are a collection of templates that can be packaged into versioned archives
+# to be deployed.
+#
+# Library charts provide useful utilities or functions for the chart developer. They're included as
+# a dependency of application charts to inject those utilities and functions into the rendering
+# pipeline. Library charts do not define any templates and therefore cannot be deployed.
+type: application
+
+# This is the chart version. This version number should be incremented each time you make changes
+# to the chart and its templates, including the app version.
+# Versions are expected to follow Semantic Versioning (https://semver.org/)
+version: 1.0.0
+
+home: https://helm-ziplinee.malsharbaji.com
+icon: https://helm-ziplinee.malsharbaji.com/icon.png
+
+dependencies:
+- name: ziplinee-ci-api
+  version: ^1
+  alias: api
+  condition: api.enabled
+- name: ziplinee-ci-db-migrator
+  version: ^1
+  alias: db-migrator
+  condition: db-migrator.enabled
+- name: ziplinee-ci-db-client
+  version: ^1
+  alias: db-client
+  condition: db-client.enabled
+- name: ziplinee-ci-web
+  version: ^1
+  alias: web
+  condition: web.enabled
+
+- name: cockroachdb
+  version: 10.0.6
+  repository: https://charts.cockroachdb.com/
+  alias: db
+  condition: db.enabled
+- name: prometheus
+  version: 14.8.0
+  repository: https://prometheus-community.github.io/helm-charts
+  alias: metrics
+  condition: metrics.enabled
+- name: nats
+  version: 0.8.9
+  repository: https://nats-io.github.io/k8s/helm/charts/
+  alias: queue
+  condition: queue.enabled
+- name: cert-manager
+  version: v1.5.3
+  repository: https://charts.jetstack.io
+  condition: cert-manager.enabled
+- name: external-dns
+  version: 1.2.0
+  repository: https://kubernetes-sigs.github.io/external-dns/
+  condition: external-dns.enabled
