@@ -51,9 +51,9 @@ spec:
           image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default .Chart.Version }}"
           imagePullPolicy: {{ $.Values.image.pullPolicy }}
           env:
-            - name: "ESTAFETTE_LOG_FORMAT"
+            - name: "ZIPLINEE_LOG_FORMAT"
               value: "{{ $.Values.logFormat }}"
-            - name: "ESTAFETTE_LOG_LEVEL"
+            - name: "ZIPLINEE_LOG_LEVEL"
               value: "{{ $.Values.logLevel }}"
           {{- with $.Values.deployment.extraEnv }}
             {{- toYaml . | nindent 12 }}

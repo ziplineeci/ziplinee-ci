@@ -5,9 +5,11 @@ metadata:
   name: {{ include "ziplinee-ci-api.fullname" . }}
 spec:
   secretName: {{ include "ziplinee-ci-api.fullname" . }}.tls
+  chainOutputFormat: Combined
   issuerRef:
-    name: $.Values.tls.certManager.issuer
+    name: {{ $.Values.tls.certManager.issuer }}
+    kind: ClusterIssuer
   dnsNames:
-  - {{ $.Values.baseHost }}
-  - {{ $.Values.integrationsHost }}
+    - {{ $.Values.baseHost }}
+    - {{ $.Values.integrationsHost }}
 {{- end }}
